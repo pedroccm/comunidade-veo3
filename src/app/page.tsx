@@ -3,11 +3,12 @@
 import { AuthForm } from "@/components/auth-form"
 import { Dashboard } from "@/components/dashboard"
 import { useAuth } from "@/hooks/useAuth"
+import type { User } from "@/types"
 
 export default function Home() {
   const { user, loading, signOut } = useAuth()
 
-  const handleLogin = (userData: any) => {
+  const handleLogin = (userData: User) => {
     // O hook useAuth já irá detectar automaticamente o login
     // através do onAuthStateChange do Supabase
     console.log('Usuário logado:', userData)

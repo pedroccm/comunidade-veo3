@@ -1,16 +1,17 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { MessageCircle, Send, Reply, Calendar, Loader2 } from "lucide-react"
 import { getCommentsByVideoId, createComment, getUserName } from "@/lib/database"
+import type { VideoData, CommentData, User } from "@/types"
 
 interface VideoPostProps {
-  video: any
-  currentUser: any
-  onUpdateComments: (videoId: string, comments: any[]) => void
+  video: VideoData
+  currentUser: User
+  onUpdateComments: (videoId: string, comments: CommentData[]) => void
 }
 
 export function VideoPost({ video, currentUser, onUpdateComments }: VideoPostProps) {
@@ -18,7 +19,7 @@ export function VideoPost({ video, currentUser, onUpdateComments }: VideoPostPro
   const [newComment, setNewComment] = useState("")
   const [replyTo, setReplyTo] = useState<string | null>(null)
   const [replyText, setReplyText] = useState("")
-  const [comments, setComments] = useState<any[]>([])
+  const [comments, setComments] = useState<CommentData[]>([])
   const [commentsLoading, setCommentsLoading] = useState(false)
   const [commentsLoaded, setCommentsLoaded] = useState(false)
   const [addingComment, setAddingComment] = useState(false)
@@ -42,12 +43,12 @@ export function VideoPost({ video, currentUser, onUpdateComments }: VideoPostPro
 
       if (data) {
         // Organizar comentários hierárquicamente
-        const commentMap = new Map()
-        const rootComments: any[] = []
+        const commentMap = new Map<string, CommentData>()
+        const rootComments: CommentData[] = []
 
         // Primeiro, criar todos os comentários
-        data.forEach((comment: any) => {
-          const formattedComment = {
+        data.forEach((comment) => {
+          const formattedComment: CommentData = {
             id: comment.id,
             text: comment.text,
             userId: comment.user_id,
@@ -98,11 +99,11 @@ export function VideoPost({ video, currentUser, onUpdateComments }: VideoPostPro
       }
 
       if (data) {
-        const newCommentObj = {
+        const newCommentObj: CommentData = {
           id: data.id,
           text: data.text,
           userId: data.user_id,
-          userName: currentUser.name,
+          userName: currentUser.name || currentUser.email.split('@')[0],
           createdAt: data.created_at,
           parentId: null,
           replies: [],
@@ -111,8 +112,9 @@ export function VideoPost({ video, currentUser, onUpdateComments }: VideoPostPro
         setComments([...comments, newCommentObj])
         setNewComment("")
       }
-    } catch (error: any) {
-      alert(`Erro ao adicionar comentário: ${error.message}`)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+      alert(`Erro ao adicionar comentário: ${errorMessage}`)
     } finally {
       setAddingComment(false)
     }
@@ -136,11 +138,11 @@ export function VideoPost({ video, currentUser, onUpdateComments }: VideoPostPro
       }
 
       if (data) {
-        const newReply = {
+        const newReply: CommentData = {
           id: data.id,
           text: data.text,
           userId: data.user_id,
-          userName: currentUser.name,
+          userName: currentUser.name || currentUser.email.split('@')[0],
           createdAt: data.created_at,
           parentId: commentId,
           replies: [],
@@ -154,8 +156,9 @@ export function VideoPost({ video, currentUser, onUpdateComments }: VideoPostPro
         setReplyText("")
         setReplyTo(null)
       }
-    } catch (error: any) {
-      alert(`Erro ao adicionar resposta: ${error.message}`)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+      alert(`Erro ao adicionar resposta: ${errorMessage}`)
     } finally {
       setAddingComment(false)
     }
@@ -246,7 +249,7 @@ export function VideoPost({ video, currentUser, onUpdateComments }: VideoPostPro
                   {comments.length === 0 ? (
                     <p className="text-gray-500 text-center py-4">Nenhum comentário ainda. Seja o primeiro!</p>
                   ) : (
-                    comments.map((comment: any) => (
+                    comments.map((comment) => (
                       <div key={comment.id} className="space-y-3">
                         <div className="bg-gray-50 rounded-lg p-3">
                           <div className="flex items-center justify-between mb-2">
@@ -269,7 +272,7 @@ export function VideoPost({ video, currentUser, onUpdateComments }: VideoPostPro
                         {/* Replies */}
                         {comment.replies.length > 0 && (
                           <div className="ml-6 space-y-2">
-                            {comment.replies.map((reply: any) => (
+                            {comment.replies.map((reply) => (
                               <div key={reply.id} className="bg-gray-100 rounded-lg p-3">
                                 <div className="flex items-center justify-between mb-1">
                                   <span className="font-medium text-sm">{reply.userName}</span>

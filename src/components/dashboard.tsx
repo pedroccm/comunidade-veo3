@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -8,24 +8,20 @@ import { VideoPost } from "@/components/video-post"
 import { AddVideoModal } from "@/components/add-video-modal"
 import { Video, Plus, LogOut, Crown, Lock } from "lucide-react"
 import { getVideos, createVideo, getUserName } from "@/lib/database"
-import type { Video as VideoType } from "@/lib/database"
+import type { User, VideoData, VideoFormData } from "@/types"
 
 interface DashboardProps {
-  user: any
+  user: User
   onLogout: () => void
 }
 
 export function Dashboard({ user, onLogout }: DashboardProps) {
-  const [videos, setVideos] = useState<any[]>([])
+  const [videos, setVideos] = useState<VideoData[]>([])
   const [showAddModal, setShowAddModal] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    loadVideos()
-  }, [])
-
-  const loadVideos = async () => {
+  const loadVideos = useCallback(async () => {
     try {
       setLoading(true)
       const { data, error } = await getVideos()
@@ -37,7 +33,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
 
       if (data) {
         // Transformar os dados para o formato esperado pelos componentes
-        const formattedVideos = data.map((video: any) => ({
+        const formattedVideos = data.map((video) => ({
           id: video.id,
           userId: video.user_id,
           userName: getUserName(video.user_id, user),
@@ -48,14 +44,19 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
         }))
         setVideos(formattedVideos)
       }
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
 
-  const addVideo = async (videoData: any) => {
+  useEffect(() => {
+    loadVideos()
+  }, [loadVideos])
+
+  const addVideo = async (videoData: VideoFormData) => {
     try {
       const { data, error } = await createVideo({
         youtube_url: videoData.youtubeUrl,
@@ -70,10 +71,10 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
 
       if (data) {
         // Adicionar o novo vídeo ao estado
-        const newVideo = {
+        const newVideo: VideoData = {
           id: data.id,
           userId: data.user_id,
-          userName: user.name,
+          userName: user.name || user.email.split('@')[0],
           youtubeUrl: data.youtube_url,
           prompt: data.prompt,
           createdAt: data.created_at,
@@ -81,12 +82,13 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
         }
         setVideos([newVideo, ...videos])
       }
-    } catch (err: any) {
-      alert(`Erro ao adicionar vídeo: ${err.message}`)
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido'
+      alert(`Erro ao adicionar vídeo: ${errorMessage}`)
     }
   }
 
-  const updateVideoComments = (videoId: string, comments: any[]) => {
+  const updateVideoComments = (videoId: string, comments: VideoData['comments']) => {
     const updatedVideos = videos.map((video) => (video.id === videoId ? { ...video, comments } : video))
     setVideos(updatedVideos)
   }

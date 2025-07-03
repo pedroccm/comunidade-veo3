@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { formatUserForApp, User } from '@/lib/auth'
+import { formatUserForApp } from '@/lib/auth'
+import type { User, SupabaseUser } from '@/types'
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
@@ -12,7 +13,7 @@ export function useAuth() {
       try {
         const { data: { session } } = await supabase.auth.getSession()
         if (session?.user) {
-          setUser(formatUserForApp(session.user))
+          setUser(formatUserForApp(session.user as SupabaseUser))
         }
       } catch (error) {
         console.error('Erro ao verificar usuário:', error)
@@ -26,7 +27,7 @@ export function useAuth() {
     // Escutar mudanças no estado de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
-        setUser(formatUserForApp(session.user))
+        setUser(formatUserForApp(session.user as SupabaseUser))
       } else if (event === 'SIGNED_OUT') {
         setUser(null)
       }

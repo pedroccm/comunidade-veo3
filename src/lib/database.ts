@@ -1,39 +1,12 @@
 import { supabase } from './supabase'
-
-// Tipos para as tabelas
-export interface Video {
-  id: string
-  user_id: string
-  youtube_url: string
-  prompt: string
-  created_at: string
-}
-
-export interface Comment {
-  id: string
-  video_id: string
-  user_id: string
-  text: string
-  parent_id: string | null
-  created_at: string
-}
-
-export interface VideoWithUser extends Video {
-  user_name: string
-  user_email: string
-}
-
-export interface CommentWithUser extends Comment {
-  user_name: string
-  user_email: string
-}
+import type { SupabaseVideo, SupabaseComment, DatabaseResult, User } from '../types'
 
 // Funções para Videos
 export async function createVideo(videoData: {
   youtube_url: string
   prompt: string
   user_id: string
-}) {
+}): Promise<DatabaseResult<SupabaseVideo>> {
   try {
     const { data, error } = await supabase
       .from('videos')
@@ -42,13 +15,14 @@ export async function createVideo(videoData: {
       .single()
 
     if (error) throw error
-    return { data, error: null }
-  } catch (error: any) {
-    return { data: null, error: error.message }
+    return { data: data as SupabaseVideo, error: null }
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+    return { data: null, error: errorMessage }
   }
 }
 
-export async function getVideos() {
+export async function getVideos(): Promise<DatabaseResult<SupabaseVideo[]>> {
   try {
     const { data, error } = await supabase
       .from('videos')
@@ -56,13 +30,14 @@ export async function getVideos() {
       .order('created_at', { ascending: false })
 
     if (error) throw error
-    return { data, error: null }
-  } catch (error: any) {
-    return { data: null, error: error.message }
+    return { data: data as SupabaseVideo[], error: null }
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+    return { data: null, error: errorMessage }
   }
 }
 
-export async function getVideoById(id: string) {
+export async function getVideoById(id: string): Promise<DatabaseResult<SupabaseVideo>> {
   try {
     const { data, error } = await supabase
       .from('videos')
@@ -71,9 +46,10 @@ export async function getVideoById(id: string) {
       .single()
 
     if (error) throw error
-    return { data, error: null }
-  } catch (error: any) {
-    return { data: null, error: error.message }
+    return { data: data as SupabaseVideo, error: null }
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+    return { data: null, error: errorMessage }
   }
 }
 
@@ -83,7 +59,7 @@ export async function createComment(commentData: {
   user_id: string
   text: string
   parent_id?: string
-}) {
+}): Promise<DatabaseResult<SupabaseComment>> {
   try {
     const { data, error } = await supabase
       .from('comments')
@@ -92,13 +68,14 @@ export async function createComment(commentData: {
       .single()
 
     if (error) throw error
-    return { data, error: null }
-  } catch (error: any) {
-    return { data: null, error: error.message }
+    return { data: data as SupabaseComment, error: null }
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+    return { data: null, error: errorMessage }
   }
 }
 
-export async function getCommentsByVideoId(videoId: string) {
+export async function getCommentsByVideoId(videoId: string): Promise<DatabaseResult<SupabaseComment[]>> {
   try {
     const { data, error } = await supabase
       .from('comments')
@@ -107,13 +84,14 @@ export async function getCommentsByVideoId(videoId: string) {
       .order('created_at', { ascending: true })
 
     if (error) throw error
-    return { data, error: null }
-  } catch (error: any) {
-    return { data: null, error: error.message }
+    return { data: data as SupabaseComment[], error: null }
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+    return { data: null, error: errorMessage }
   }
 }
 
-export async function deleteComment(commentId: string) {
+export async function deleteComment(commentId: string): Promise<{ error: string | null }> {
   try {
     const { error } = await supabase
       .from('comments')
@@ -122,32 +100,34 @@ export async function deleteComment(commentId: string) {
 
     if (error) throw error
     return { error: null }
-  } catch (error: any) {
-    return { error: error.message }
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+    return { error: errorMessage }
   }
 }
 
 // Função auxiliar para extrair nome do usuário
-export function extractUserName(user: any): string {
-  if (user?.raw_user_meta_data?.name) {
-    return user.raw_user_meta_data.name
+export function extractUserName(user: User): string {
+  if (user?.name) {
+    return user.name
   }
   return user?.email?.split('@')[0] || 'Usuário'
 }
 
 // Função para buscar informações do usuário
-export async function getUserById(userId: string) {
+export async function getUserById(userId: string): Promise<DatabaseResult<User>> {
   try {
     const { data, error } = await supabase.auth.admin.getUserById(userId)
     if (error) throw error
-    return { data, error: null }
-  } catch (error: any) {
-    return { data: null, error: error.message }
+    return { data: data as User, error: null }
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+    return { data: null, error: errorMessage }
   }
 }
 
 // Função para buscar nome do usuário diretamente do cache/session
-export function getUserName(userId: string, currentUser: any): string {
+export function getUserName(userId: string, currentUser: User): string {
   // Se for o usuário atual, usar o nome dele
   if (currentUser && currentUser.id === userId) {
     return currentUser.name || currentUser.email?.split('@')[0] || 'Usuário'

@@ -10,9 +10,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Video, Sparkles } from "lucide-react"
 import { signUp, signIn, formatUserForApp } from "@/lib/auth"
+import type { User } from "@/types"
 
 interface AuthFormProps {
-  onLogin: (user: any) => void
+  onLogin: (user: User) => void
 }
 
 export function AuthForm({ onLogin }: AuthFormProps) {
@@ -31,17 +32,17 @@ export function AuthForm({ onLogin }: AuthFormProps) {
     const password = formData.get("password") as string
     const name = formData.get("name") as string
 
-    try {
-      if (isLogin) {
-        // Login com Supabase
-        const { user, error } = await signIn(email, password)
-        
-        if (error) {
-          setError(error)
-        } else if (user) {
-          onLogin(formatUserForApp(user))
-        }
-              } else {
+          try {
+        if (isLogin) {
+          // Login com Supabase
+          const { user, error } = await signIn(email, password)
+          
+          if (error) {
+            setError(error)
+          } else if (user) {
+            onLogin(formatUserForApp(user))
+          }
+        } else {
           // Cadastro com Supabase
           const { user, error, needsConfirmation } = await signUp(email, password, name)
           
@@ -55,11 +56,12 @@ export function AuthForm({ onLogin }: AuthFormProps) {
             }
           }
         }
-    } catch (err: any) {
-      setError(err.message || "Erro inesperado")
-    } finally {
-      setIsLoading(false)
-    }
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Erro inesperado'
+        setError(errorMessage)
+      } finally {
+        setIsLoading(false)
+      }
   }
 
   return (

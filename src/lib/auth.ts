@@ -1,14 +1,7 @@
 import { supabase } from './supabase'
+import type { User, AuthResult, SupabaseUser } from '../types'
 
-export interface User {
-  id: string
-  email: string
-  name?: string
-  assinante?: boolean
-  createdAt: string
-}
-
-export async function signUp(email: string, password: string, name: string) {
+export async function signUp(email: string, password: string, name: string): Promise<AuthResult> {
   try {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -27,16 +20,17 @@ export async function signUp(email: string, password: string, name: string) {
     // Verificar se o usuário foi criado com sucesso
     if (data.user) {
       // Se o usuário foi criado mas não está confirmado, ainda assim retornamos sucesso
-      return { user: data.user, error: null, needsConfirmation: !data.session }
+      return { user: data.user as SupabaseUser, error: null, needsConfirmation: !data.session }
     }
 
     return { user: null, error: 'Erro ao criar usuário' }
-  } catch (error: any) {
-    return { user: null, error: error.message, needsConfirmation: false }
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+    return { user: null, error: errorMessage, needsConfirmation: false }
   }
 }
 
-export async function signIn(email: string, password: string) {
+export async function signIn(email: string, password: string): Promise<AuthResult> {
   try {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -47,37 +41,40 @@ export async function signIn(email: string, password: string) {
       throw error
     }
 
-    return { user: data.user, error: null }
-  } catch (error: any) {
-    return { user: null, error: error.message }
+    return { user: data.user as SupabaseUser, error: null }
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+    return { user: null, error: errorMessage }
   }
 }
 
-export async function signOut() {
+export async function signOut(): Promise<{ error: string | null }> {
   try {
     const { error } = await supabase.auth.signOut()
     if (error) {
       throw error
     }
     return { error: null }
-  } catch (error: any) {
-    return { error: error.message }
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+    return { error: errorMessage }
   }
 }
 
-export async function getCurrentUser() {
+export async function getCurrentUser(): Promise<{ user: SupabaseUser | null; error: string | null }> {
   try {
     const { data: { user }, error } = await supabase.auth.getUser()
     if (error) {
       throw error
     }
-    return { user, error: null }
-  } catch (error: any) {
-    return { user: null, error: error.message }
+    return { user: user as SupabaseUser, error: null }
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+    return { user: null, error: errorMessage }
   }
 }
 
-export function formatUserForApp(supabaseUser: any): User {
+export function formatUserForApp(supabaseUser: SupabaseUser): User {
   return {
     id: supabaseUser.id,
     email: supabaseUser.email,

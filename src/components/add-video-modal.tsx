@@ -8,11 +8,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import type { VideoFormData } from "@/types"
 
 interface AddVideoModalProps {
   isOpen: boolean
   onClose: () => void
-  onAdd: (videoData: any) => void
+  onAdd: (videoData: VideoFormData) => void
 }
 
 export function AddVideoModal({ isOpen, onClose, onAdd }: AddVideoModalProps) {
