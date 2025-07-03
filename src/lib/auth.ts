@@ -78,8 +78,8 @@ export function formatUserForApp(supabaseUser: SupabaseUser): User {
   return {
     id: supabaseUser.id,
     email: supabaseUser.email,
-    name: supabaseUser.user_metadata?.name || supabaseUser.email,
-    assinante: supabaseUser.user_metadata?.assinante || false,
+    name: (supabaseUser.user_metadata?.name as string) || supabaseUser.email,
+    assinante: Boolean(supabaseUser.user_metadata?.assinante) || false,
     createdAt: supabaseUser.created_at,
   }
 } 
