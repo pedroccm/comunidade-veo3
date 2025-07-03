@@ -35,12 +35,7 @@ export interface VideoFormData {
   prompt: string
 }
 
-// Tipos para Auth
-export interface AuthResult {
-  user: User | null
-  error: string | null
-  needsConfirmation?: boolean
-}
+
 
 // Tipos para Database
 export interface DatabaseResult<T> {

@@ -1,7 +1,7 @@
 import { supabase } from './supabase'
-import type { User, AuthResult, SupabaseUser } from '../types'
+import type { User, SupabaseUser } from '../types'
 
-export async function signUp(email: string, password: string, name: string): Promise<AuthResult> {
+export async function signUp(email: string, password: string, name: string): Promise<{ user: SupabaseUser | null; error: string | null; needsConfirmation?: boolean }> {
   try {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -30,7 +30,7 @@ export async function signUp(email: string, password: string, name: string): Pro
   }
 }
 
-export async function signIn(email: string, password: string): Promise<AuthResult> {
+export async function signIn(email: string, password: string): Promise<{ user: SupabaseUser | null; error: string | null }> {
   try {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
