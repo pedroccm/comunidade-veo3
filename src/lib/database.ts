@@ -114,17 +114,7 @@ export function extractUserName(user: User): string {
   return user?.email?.split('@')[0] || 'Usuário'
 }
 
-// Função para buscar informações do usuário
-export async function getUserById(userId: string): Promise<DatabaseResult<User>> {
-  try {
-    const { data, error } = await supabase.auth.admin.getUserById(userId)
-    if (error) throw error
-    return { data: data as User, error: null }
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
-    return { data: null, error: errorMessage }
-  }
-}
+
 
 // Função para buscar nome do usuário diretamente do cache/session
 export function getUserName(userId: string, currentUser: User): string {
