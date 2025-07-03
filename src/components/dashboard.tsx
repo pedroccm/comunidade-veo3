@@ -88,10 +88,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
     }
   }
 
-  const updateVideoComments = (videoId: string, comments: VideoData['comments']) => {
-    const updatedVideos = videos.map((video) => (video.id === videoId ? { ...video, comments } : video))
-    setVideos(updatedVideos)
-  }
+
 
   // Limitar vídeos para não-assinantes
   const displayVideos = user.assinante ? videos : videos.slice(0, 3)
@@ -190,7 +187,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
         ) : (
           <div className="space-y-6">
             {displayVideos.map((video) => (
-              <VideoPost key={video.id} video={video} currentUser={user} onUpdateComments={updateVideoComments} />
+              <VideoPost key={video.id} video={video} currentUser={user} />
             ))}
           </div>
         )}

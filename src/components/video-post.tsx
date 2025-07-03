@@ -11,10 +11,9 @@ import type { VideoData, CommentData, User } from "@/types"
 interface VideoPostProps {
   video: VideoData
   currentUser: User
-  onUpdateComments: (videoId: string, comments: CommentData[]) => void
 }
 
-export function VideoPost({ video, currentUser, onUpdateComments }: VideoPostProps) {
+export function VideoPost({ video, currentUser }: VideoPostProps) {
   const [showComments, setShowComments] = useState(false)
   const [newComment, setNewComment] = useState("")
   const [replyTo, setReplyTo] = useState<string | null>(null)
