@@ -1,6 +1,8 @@
-# Webhook API - Exemplos de Uso
+# Webhook API - Funcionalidades Completas
 
-Este webhook permite inserir, atualizar e deletar dados no Supabase via requisições POST.
+Este webhook suporta dois tipos de operações:
+1. **Webhooks de Pagamento/E-commerce** - Processa automaticamente transações e ativa assinaturas
+2. **Webhooks Genéricos** - Inserir, atualizar e deletar dados no Supabase
 
 ## Endpoint
 ```
@@ -18,9 +20,61 @@ POST /api/webhook
 }
 ```
 
-## Exemplos de Uso
+## 💳 **Webhooks de Pagamento (Detecção Automática)**
 
-### 1. Inserir um novo vídeo
+O webhook detecta automaticamente payloads de sistemas de pagamento e processa:
+
+### **Exemplo 1: Compra Aprovada**
+```bash
+curl -X POST https://criadoresde.video/api/webhook \
+  -H "Content-Type: application/json" \
+  -d '{
+    "evento": "compra aprovada",
+    "produto": "Produto test postback2", 
+    "transacao": "HP160154792...",
+    "email": "usuario@example.com",
+    "status": "aprovado",
+    "data": "2025-01-04T15:13:09Z"
+  }'
+```
+
+**Resposta de Sucesso:**
+```json
+{
+  "success": true,
+  "message": "Webhook de pagamento processado com sucesso",
+  "type": "payment",
+  "evento": "compra aprovada",
+  "transacao": "HP160154792...",
+  "processedAt": "2025-01-04T15:13:09Z"
+}
+```
+
+### **Ações Automáticas para "Compra Aprovada":**
+- ✅ Busca usuário pelo email
+- ✅ Ativa assinatura (`assinante: true`) no perfil
+- ✅ Salva transação na tabela `payments`
+- ✅ Registra logs para auditoria
+
+### **Exemplo 2: Suporte a Form-URLEncoded**
+```bash
+curl -X POST https://criadoresde.video/api/webhook \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "evento=compra aprovada&produto=Premium Plan&transacao=TX123&email=user@example.com"
+```
+
+### **Eventos Suportados:**
+- `compra aprovada` / `payment_approved` / `completed` → Ativa assinatura
+- `compra cancelada` / `payment_cancelled` / `cancelled` → Desativa assinatura  
+- `compra pendente` / `payment_pending` / `pending` → Registra evento
+
+## 🔧 **Webhooks Genéricos**
+
+Para operações diretas no banco de dados:
+
+## Exemplos de Uso Genérico
+
+### 1. Inserir um novo vídeo (Webhook Genérico)
 
 ```bash
 curl -X POST http://localhost:3000/api/webhook \
@@ -35,7 +89,7 @@ curl -X POST http://localhost:3000/api/webhook \
   }'
 ```
 
-### 2. Inserir um comentário
+### 2. Inserir um comentário (Webhook Genérico)
 
 ```bash
 curl -X POST http://localhost:3000/api/webhook \
@@ -51,7 +105,7 @@ curl -X POST http://localhost:3000/api/webhook \
   }'
 ```
 
-### 3. Criar um perfil público
+### 3. Criar um perfil público (Webhook Genérico)
 
 ```bash
 curl -X POST http://localhost:3000/api/webhook \
@@ -66,7 +120,7 @@ curl -X POST http://localhost:3000/api/webhook \
   }'
 ```
 
-### 4. Atualizar status de assinante
+### 4. Atualizar status de assinante (Webhook Genérico)
 
 ```bash
 curl -X POST http://localhost:3000/api/webhook \
@@ -83,7 +137,7 @@ curl -X POST http://localhost:3000/api/webhook \
   }'
 ```
 
-### 5. Deletar um comentário
+### 5. Deletar um comentário (Webhook Genérico)
 
 ```bash
 curl -X POST http://localhost:3000/api/webhook \
@@ -166,19 +220,71 @@ SUPABASE_SERVICE_ROLE_KEY=sua-service-role-key
 
 ⚠️ **IMPORTANTE**: A `SUPABASE_SERVICE_ROLE_KEY` é necessária apenas para o webhook funcionar. O resto da aplicação usa apenas as chaves públicas.
 
-## Testando Localmente
+## 🛠️ **Configuração das Tabelas**
 
-1. Instale um cliente HTTP como `curl` ou use Postman/Insomnia
-2. Execute o projeto: `npm run dev`
-3. Faça requisições para `http://localhost:3000/api/webhook`
-4. Verifique os logs no terminal para debug
+Para webhooks de pagamento funcionarem completamente, execute no Supabase:
+
+```sql
+-- Execute payment-tables.sql no SQL Editor do Supabase
+-- Isso criará as tabelas: payments, webhook_logs e suas políticas
+```
+
+## 🐛 **Debug e Logs**
+
+O webhook agora tem logs detalhados:
+
+```bash
+# Verificar logs em tempo real (modo desenvolvimento)
+npm run dev
+
+# Ou verificar logs no Netlify:
+# Site Settings > Functions > View logs
+```
+
+**Logs incluem:**
+- 📋 Headers recebidos
+- 📦 Payload completo (RAW)
+- 🔍 Tipo de webhook detectado
+- 💳 Ações executadas para pagamentos
+- ✅/❌ Resultados das operações
+
+## 🧪 **Testando**
+
+### **Testar Webhook de Pagamento:**
+```bash
+curl -X POST https://criadoresde.video/api/webhook \
+  -H "Content-Type: application/json" \
+  -d '{
+    "evento": "compra aprovada",
+    "email": "seu-email@example.com",
+    "produto": "Teste Produto",
+    "transacao": "TESTE123"
+  }'
+```
+
+### **Testar Localmente:**
+1. Execute o projeto: `npm run dev` 
+2. Use `http://localhost:3000/api/webhook`
+3. Verifique logs no terminal
 
 ## Monitoramento
 
-O webhook gera logs detalhados para acompanhar:
-- Payloads recebidos
-- Operações executadas
-- Erros encontrados
-- Resultados das operações
+### **Monitoramento Avançado:**
 
-Verifique o console do Next.js para troubleshooting. 
+- 📊 **Tabela `payments`**: Histórico de todas as transações
+- 📋 **Tabela `webhook_logs`**: Logs de todos os webhooks  
+- 🔍 **View `payments_summary`**: Resumo visual com emojis
+- 🎯 **Função `get_user_payments(email)`**: Buscar pagamentos por usuário
+
+### **Consultas Úteis no Supabase:**
+
+```sql
+-- Ver últimos pagamentos
+SELECT * FROM payments_summary LIMIT 10;
+
+-- Buscar pagamentos de um usuário  
+SELECT * FROM get_user_payments('usuario@example.com');
+
+-- Ver logs de webhook
+SELECT type, created_at FROM webhook_logs ORDER BY created_at DESC;
+``` 
