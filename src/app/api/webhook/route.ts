@@ -4,17 +4,17 @@ import { NextRequest, NextResponse } from 'next/server'
 // Função para criar cliente Supabase apenas quando necessário (lazy loading)
 function getSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!supabaseUrl) {
     throw new Error('NEXT_PUBLIC_SUPABASE_URL é obrigatória')
   }
 
-  if (!supabaseServiceKey) {
-    throw new Error('SUPABASE_SERVICE_ROLE_KEY é obrigatória')
+  if (!supabaseKey) {
+    throw new Error('NEXT_PUBLIC_SUPABASE_ANON_KEY é obrigatória')
   }
 
-  return createClient(supabaseUrl, supabaseServiceKey)
+  return createClient(supabaseUrl, supabaseKey)
 }
 
 export async function POST(request: NextRequest) {
