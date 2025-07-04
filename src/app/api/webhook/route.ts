@@ -223,6 +223,18 @@ async function processPaymentAction(payload: PaymentWebhookPayload): Promise<voi
   }
 }
 
+// Helper function para buscar usuário por email
+async function findUserByEmail(email: string) {
+  const supabase = getSupabaseClient()
+
+  const { data: usersResponse } = await supabase.auth.admin.listUsers({
+    page: 1,
+    perPage: 1000
+  })
+
+  return usersResponse?.users?.find(user => user.email === email)
+}
+
 // Processar compra aprovada
 async function handleApprovedPurchase(payload: PaymentWebhookPayload): Promise<void> {
   try {
@@ -231,19 +243,18 @@ async function handleApprovedPurchase(payload: PaymentWebhookPayload): Promise<v
       return
     }
 
-    const supabase = getSupabaseClient()
+    const authUser = await findUserByEmail(payload.email)
 
-    // Buscar usuário pelo email
-    const { data: authUser } = await supabase.auth.admin.getUserByEmail(payload.email)
+    if (authUser) {
+      console.log(`👤 Usuário encontrado: ${authUser.id}`)
 
-    if (authUser?.user) {
-      console.log(`👤 Usuário encontrado: ${authUser.user.id}`)
+      const supabase = getSupabaseClient()
 
       // Ativar assinatura
       const { error: updateError } = await supabase
         .from('public_profiles')
         .update({ assinante: true })
-        .eq('id', authUser.user.id)
+        .eq('id', authUser.id)
 
       if (updateError) {
         console.error('❌ Erro ao ativar assinatura:', updateError.message)
@@ -263,15 +274,16 @@ async function handleCancelledPurchase(payload: PaymentWebhookPayload): Promise<
   try {
     if (!payload.email) return
 
-    const supabase = getSupabaseClient()
-    const { data: authUser } = await supabase.auth.admin.getUserByEmail(payload.email)
+    const authUser = await findUserByEmail(payload.email)
 
-    if (authUser?.user) {
+    if (authUser) {
+      const supabase = getSupabaseClient()
+      
       // Desativar assinatura
       await supabase
         .from('public_profiles')
         .update({ assinante: false })
-        .eq('id', authUser.user.id)
+        .eq('id', authUser.id)
 
       console.log('❌ Assinatura desativada por cancelamento')
     }
