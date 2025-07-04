@@ -44,7 +44,7 @@ export function AuthForm({ onLogin }: AuthFormProps) {
             const formattedUser = {
               id: user.id,
               email: user.email,
-              name: (user.user_metadata?.name as string) || user.email.split('@')[0],
+              name: (user.user_metadata?.name as string) || user.email?.split('@')[0] || 'Usuário',
               assinante: Boolean(user.user_metadata?.assinante) || false,
               createdAt: user.created_at,
             }

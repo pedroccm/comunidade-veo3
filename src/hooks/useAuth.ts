@@ -17,7 +17,7 @@ export function useAuth() {
     return {
       id: supabaseUser.id,
       email: supabaseUser.email,
-      name: (supabaseUser.user_metadata?.name as string) || supabaseUser.email.split('@')[0],
+      name: (supabaseUser.user_metadata?.name as string) || supabaseUser.email?.split('@')[0] || 'Usuário',
       assinante: Boolean(supabaseUser.user_metadata?.assinante) || false,
       createdAt: supabaseUser.created_at,
     }

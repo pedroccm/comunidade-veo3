@@ -109,7 +109,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
         ))
       }
     }
-  }, [user.name, videos, user.id, user.email])
+  }, [user, videos])
 
   const addVideo = async (videoData: VideoFormData) => {
     try {
@@ -133,7 +133,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
         const newVideo: EnrichedVideoData = {
           id: data.id,
           userId: data.user_id,
-          userName: user.name || user.email.split('@')[0],
+          userName: user.name || user.email?.split('@')[0] || 'Você',
           youtubeUrl: data.youtube_url,
           prompt: data.prompt,
           createdAt: data.created_at,

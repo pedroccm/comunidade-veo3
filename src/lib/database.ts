@@ -273,7 +273,7 @@ export async function getUserNameById(userId: string): Promise<string> {
       
       if (!authError && currentAuthUser && currentAuthUser.id === userId) {
         // Se é o usuário atual, tentar criar perfil automaticamente
-        const userName = (currentAuthUser.user_metadata?.name as string) || currentAuthUser.email.split('@')[0]
+        const userName = (currentAuthUser.user_metadata?.name as string) || currentAuthUser.email?.split('@')[0] || 'Usuário'
         
         console.log('🔧 Tentando criar perfil para usuário atual:', userName)
         
@@ -492,7 +492,7 @@ export async function enrichUserProfile(user: User): Promise<User> {
       
       const { data: newProfile, error: createError } = await createPublicProfile({
         id: user.id,
-        name: user.name || user.email.split('@')[0],
+        name: user.name || user.email?.split('@')[0] || 'Usuário',
         assinante: user.assinante || false
       })
       
