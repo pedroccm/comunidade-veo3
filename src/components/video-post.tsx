@@ -33,25 +33,47 @@ export function VideoPost({ video, currentUser }: VideoPostProps) {
 
     setCommentsLoading(true)
     try {
+      console.log('📝 Carregando comentários do vídeo:', video.id)
       const { data, error } = await getCommentsByVideoId(video.id)
       
       if (error) {
-        console.error('Erro ao carregar comentários:', error)
+        console.error('❌ Erro ao carregar comentários:', error)
         return
       }
 
       if (data) {
+        console.log(`📊 ${data.length} comentários encontrados, buscando nomes dos autores...`)
+        
+        // Primeiro, buscar todos os nomes dos usuários
+        const userNames = new Map<string, string>()
+        
+        // Buscar nomes únicos para evitar consultas duplicadas
+        const uniqueUserIds = [...new Set(data.map(comment => comment.user_id))]
+        
+        await Promise.all(
+          uniqueUserIds.map(async (userId) => {
+            try {
+              const userName = await getUserName(userId, currentUser)
+              userNames.set(userId, userName)
+              console.log(`👤 Comentário autor ${userId} = ${userName}`)
+            } catch (error) {
+              console.error(`❌ Erro ao buscar nome do usuário ${userId}:`, error)
+              userNames.set(userId, `Usuário ${userId.slice(-4)}`)
+            }
+          })
+        )
+
         // Organizar comentários hierárquicamente
         const commentMap = new Map<string, CommentData>()
         const rootComments: CommentData[] = []
 
-        // Primeiro, criar todos os comentários
+        // Criar todos os comentários com nomes já resolvidos
         data.forEach((comment) => {
           const formattedComment: CommentData = {
             id: comment.id,
             text: comment.text,
             userId: comment.user_id,
-            userName: getUserName(comment.user_id, currentUser),
+            userName: userNames.get(comment.user_id) || `Usuário ${comment.user_id.slice(-4)}`,
             createdAt: comment.created_at,
             parentId: comment.parent_id,
             replies: [],
@@ -71,11 +93,16 @@ export function VideoPost({ video, currentUser }: VideoPostProps) {
           }
         })
 
+        console.log('✅ Comentários processados com sucesso')
         setComments(rootComments)
+        setCommentsLoaded(true)
+      } else {
+        console.log('📭 Nenhum comentário encontrado')
+        setComments([])
         setCommentsLoaded(true)
       }
     } catch (error) {
-      console.error('Erro ao carregar comentários:', error)
+      console.error('❌ Erro geral ao carregar comentários:', error)
     } finally {
       setCommentsLoading(false)
     }

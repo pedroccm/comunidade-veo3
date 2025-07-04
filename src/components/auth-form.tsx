@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Video, Sparkles } from "lucide-react"
-import { signUp, signIn, formatUserForApp } from "@/lib/auth"
+import { signUp, signIn } from "@/lib/auth"
 import type { User } from "@/types"
 
 interface AuthFormProps {
@@ -40,7 +40,15 @@ export function AuthForm({ onLogin }: AuthFormProps) {
           if (error) {
             setError(error)
           } else if (user) {
-            onLogin(formatUserForApp(user))
+            // Converter diretamente para o formato da app
+            const formattedUser = {
+              id: user.id,
+              email: user.email,
+              name: (user.user_metadata?.name as string) || user.email.split('@')[0],
+              assinante: Boolean(user.user_metadata?.assinante) || false,
+              createdAt: user.created_at,
+            }
+            onLogin(formattedUser)
           }
         } else {
           // Cadastro com Supabase
@@ -52,7 +60,15 @@ export function AuthForm({ onLogin }: AuthFormProps) {
             if (needsConfirmation) {
               setSuccess("Cadastro realizado com sucesso! Verifique seu email para confirmar a conta.")
             } else {
-              onLogin(formatUserForApp(user))
+              // Converter diretamente para o formato da app
+              const formattedUser = {
+                id: user.id,
+                email: user.email,
+                name: name,
+                assinante: false,
+                createdAt: user.created_at,
+              }
+              onLogin(formattedUser)
             }
           }
         }

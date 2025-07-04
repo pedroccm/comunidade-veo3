@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { VideoPost } from "@/components/video-post"
 import { AddVideoModal } from "@/components/add-video-modal"
 import { Video, Plus, LogOut, Crown, Lock } from "lucide-react"
-import { getVideos, createVideo, getUserName } from "@/lib/database"
+import { getVideos, createVideo, getUserName, type SupabaseVideo } from "@/lib/database"
 import type { User, VideoData, VideoFormData } from "@/types"
 
 interface DashboardProps {
@@ -15,8 +15,13 @@ interface DashboardProps {
   onLogout: () => void
 }
 
+// Tipo para vídeos com informações enriquecidas
+interface EnrichedVideoData extends VideoData {
+  userName: string
+}
+
 export function Dashboard({ user, onLogout }: DashboardProps) {
-  const [videos, setVideos] = useState<VideoData[]>([])
+  const [videos, setVideos] = useState<EnrichedVideoData[]>([])
   const [showAddModal, setShowAddModal] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -24,28 +29,57 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
   const loadVideos = useCallback(async () => {
     try {
       setLoading(true)
+      console.log('📹 Carregando vídeos...')
+      
       const { data, error } = await getVideos()
       
       if (error) {
+        console.error('❌ Erro ao carregar vídeos:', error)
         setError(error)
         return
       }
 
-      if (data) {
-        // Transformar os dados para o formato esperado pelos componentes
-        const formattedVideos = data.map((video) => ({
-          id: video.id,
-          userId: video.user_id,
-          userName: getUserName(video.user_id, user),
-          youtubeUrl: video.youtube_url,
-          prompt: video.prompt,
-          createdAt: video.created_at,
-          comments: [], // Comentários serão carregados separadamente
+      if (data && data.length > 0) {
+        console.log(`📊 ${data.length} vídeos encontrados, buscando nomes dos autores...`)
+        
+        // Transformar os dados e buscar nomes dos usuários
+        const enrichedVideos = await Promise.all(data.map(async (video): Promise<EnrichedVideoData> => {
+          try {
+            const userName = await getUserName(video.user_id, user)
+            console.log(`👤 Vídeo ${video.id}: autor ${video.user_id} = ${userName}`)
+            
+            return {
+              id: video.id,
+              userId: video.user_id,
+              userName: userName,
+              youtubeUrl: video.youtube_url,
+              prompt: video.prompt,
+              createdAt: video.created_at,
+              comments: [], // Comentários serão carregados separadamente
+            }
+          } catch (error) {
+            console.error(`❌ Erro ao buscar nome para usuário ${video.user_id}:`, error)
+            return {
+              id: video.id,
+              userId: video.user_id,
+              userName: `Usuário ${video.user_id.slice(-4)}`, // Fallback mais específico
+              youtubeUrl: video.youtube_url,
+              prompt: video.prompt,
+              createdAt: video.created_at,
+              comments: [],
+            }
+          }
         }))
-        setVideos(formattedVideos)
+        
+        console.log('✅ Vídeos processados com sucesso')
+        setVideos(enrichedVideos)
+      } else {
+        console.log('📭 Nenhum vídeo encontrado')
+        setVideos([])
       }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido'
+      console.error('❌ Erro geral ao carregar vídeos:', errorMessage)
       setError(errorMessage)
     } finally {
       setLoading(false)
@@ -56,8 +90,31 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
     loadVideos()
   }, [loadVideos])
 
+  // Effect para atualizar nomes dos vídeos quando o usuário é enriquecido
+  useEffect(() => {
+    if (videos.length > 0 && user) {
+      // Atualizar nome nos vídeos do usuário atual se necessário
+      const needsUpdate = videos.some(video => 
+        video.userId === user.id && 
+        video.userName !== user.name &&
+        user.name !== user.email?.split('@')[0] // Só atualizar se o nome realmente mudou
+      )
+      
+      if (needsUpdate) {
+        console.log('🔄 Atualizando nomes dos vídeos do usuário atual...')
+        setVideos(prev => prev.map(video => 
+          video.userId === user.id 
+            ? { ...video, userName: user.name || user.email?.split('@')[0] || 'Você' }
+            : video
+        ))
+      }
+    }
+  }, [user.name, videos, user.id, user.email])
+
   const addVideo = async (videoData: VideoFormData) => {
     try {
+      console.log('➕ Adicionando novo vídeo...')
+      
       const { data, error } = await createVideo({
         youtube_url: videoData.youtubeUrl,
         prompt: videoData.prompt,
@@ -70,8 +127,10 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
       }
 
       if (data) {
-        // Adicionar o novo vídeo ao estado
-        const newVideo: VideoData = {
+        console.log('✅ Vídeo criado:', data.id)
+        
+        // Adicionar o novo vídeo ao estado com nome do usuário atual
+        const newVideo: EnrichedVideoData = {
           id: data.id,
           userId: data.user_id,
           userName: user.name || user.email.split('@')[0],
@@ -80,15 +139,16 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
           createdAt: data.created_at,
           comments: [],
         }
-        setVideos([newVideo, ...videos])
+        
+        setVideos(prev => [newVideo, ...prev])
+        setShowAddModal(false)
       }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido'
+      console.error('❌ Erro ao adicionar vídeo:', errorMessage)
       alert(`Erro ao adicionar vídeo: ${errorMessage}`)
     }
   }
-
-
 
   // Limitar vídeos para não-assinantes
   const displayVideos = user.assinante ? videos : videos.slice(0, 3)

@@ -19,6 +19,9 @@ export async function signUp(email: string, password: string, name: string): Pro
 
     // Verificar se o usuário foi criado com sucesso
     if (data.user) {
+      // O perfil público será criado automaticamente pelo enriquecimento
+      // ou pelo trigger do banco de dados se configurado
+      
       // Se o usuário foi criado mas não está confirmado, ainda assim retornamos sucesso
       return { user: data.user as SupabaseUser, error: null, needsConfirmation: !data.session }
     }
@@ -71,15 +74,5 @@ export async function getCurrentUser(): Promise<{ user: SupabaseUser | null; err
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
     return { user: null, error: errorMessage }
-  }
-}
-
-export function formatUserForApp(supabaseUser: SupabaseUser): User {
-  return {
-    id: supabaseUser.id,
-    email: supabaseUser.email,
-    name: (supabaseUser.user_metadata?.name as string) || supabaseUser.email,
-    assinante: Boolean(supabaseUser.user_metadata?.assinante) || false,
-    createdAt: supabaseUser.created_at,
   }
 } 

@@ -7,6 +7,14 @@ export interface User {
   createdAt: string
 }
 
+// Tipo para perfil público
+export interface PublicProfile {
+  id: string
+  name: string
+  assinante: boolean
+  created_at: string
+}
+
 // Tipos para vídeo
 export interface VideoData {
   id: string
