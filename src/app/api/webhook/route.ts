@@ -283,6 +283,8 @@ async function handleCancelledPurchase(payload: PaymentWebhookPayload): Promise<
 // Processar compra pendente
 async function handlePendingPurchase(payload: PaymentWebhookPayload): Promise<void> {
   console.log('⏳ Compra pendente - aguardando confirmação')
+  console.log(`📧 Email: ${payload.email || 'não informado'}`)
+  console.log(`💰 Produto: ${payload.produto || 'não informado'}`)
   // Aqui você pode registrar o evento ou enviar notificações
 }
 
