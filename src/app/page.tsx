@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth"
 import type { User } from "@/types"
 
 export default function Home() {
-  const { user, loading, error, isEnriched, signOut } = useAuth()
+  const { user, loading, error, signOut } = useAuth()
 
   const handleLogin = (userData: User) => {
     // O hook useAuth já irá detectar automaticamente o login

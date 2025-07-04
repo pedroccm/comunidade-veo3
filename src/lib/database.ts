@@ -378,13 +378,13 @@ export async function ensureUserProfile(userId: string, userEmail: string, userN
 export async function testDatabaseConfiguration(): Promise<{ 
   success: boolean; 
   message: string; 
-  details: any 
+  details: Record<string, unknown>
 }> {
   try {
     console.log('🔍 Testando configuração do banco de dados...')
     
     // Teste 1: Verificar se consegue acessar a tabela public_profiles
-    const { data: testProfiles, error: selectError } = await supabase
+    const { error: selectError } = await supabase
       .from('public_profiles')
       .select('id')
       .limit(1)

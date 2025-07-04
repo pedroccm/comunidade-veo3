@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import type { User, SupabaseUser } from '../types'
+import type { SupabaseUser } from '../types'
 
 export async function signUp(email: string, password: string, name: string): Promise<{ user: SupabaseUser | null; error: string | null; needsConfirmation?: boolean }> {
   try {

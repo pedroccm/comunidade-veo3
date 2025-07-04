@@ -9,9 +9,9 @@ const supabase = createClient(
 
 interface WebhookPayload {
   table: string // Nome da tabela onde inserir os dados
-  data: Record<string, any> // Dados para inserir
+  data: Record<string, unknown> // Dados para inserir
   action?: 'insert' | 'update' | 'delete' // Ação a realizar (padrão: insert)
-  where?: Record<string, any> // Condições para update/delete
+  where?: Record<string, unknown> // Condições para update/delete
 }
 
 export async function POST(request: NextRequest) {

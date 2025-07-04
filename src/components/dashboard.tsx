@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { VideoPost } from "@/components/video-post"
 import { AddVideoModal } from "@/components/add-video-modal"
 import { Video, Plus, LogOut, Crown, Lock } from "lucide-react"
-import { getVideos, createVideo, getUserName, type SupabaseVideo } from "@/lib/database"
+import { getVideos, createVideo, getUserName } from "@/lib/database"
 import type { User, VideoData, VideoFormData } from "@/types"
 
 interface DashboardProps {
@@ -88,7 +88,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
 
   useEffect(() => {
     loadVideos()
-  }, [loadVideos])
+  }, [loadVideos, user])
 
   // Effect para atualizar nomes dos vídeos quando o usuário é enriquecido
   useEffect(() => {
