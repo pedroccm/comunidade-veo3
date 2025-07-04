@@ -4,7 +4,16 @@
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
+    
+    // Configurações de strictness aprimoradas
     "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+    
+    // Configurações existentes
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
@@ -13,11 +22,15 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    
+    // Plugin Next.js
     "plugins": [
       {
         "name": "next"
       }
     ],
+    
+    // Path mapping
     "paths": {
       "@/*": ["./src/*"]
     }

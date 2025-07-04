@@ -1,0 +1,44 @@
+{
+  // TypeScript e ESLint
+  "typescript.validate.enable": true,
+  "typescript.preferences.includePackageJsonAutoImports": "off",
+  "typescript.suggest.autoImports": true,
+  
+  // ESLint
+  "eslint.validate": ["typescript", "typescriptreact"],
+  "eslint.format.enable": true,
+  
+  // Auto-fix ao salvar
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  
+  // Formatação
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  
+  // TypeScript específico
+  "typescript.preferences.quotingStyle": "double",
+  "typescript.preferences.importModuleSpecifier": "relative",
+  
+  // Highlight de problemas
+  "problems.showCurrentInStatus": true,
+  
+  // Sugestões
+  "editor.quickSuggestions": {
+    "other": "on",
+    "comments": "off",
+    "strings": "off"
+  },
+  
+  // Bracket pair colorization
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": true,
+  
+  // Específico para React
+  "emmet.includeLanguages": {
+    "typescript": "html",
+    "typescriptreact": "html"
+  }
+} 

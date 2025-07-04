@@ -147,10 +147,24 @@ curl -X POST http://localhost:3000/api/webhook \
 
 ## Variáveis de Ambiente Necessárias
 
+### Para Desenvolvimento Local (`.env.local`):
 ```env
 NEXT_PUBLIC_SUPABASE_URL=sua-url-do-supabase
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sua-anon-key
 SUPABASE_SERVICE_ROLE_KEY=sua-service-role-key
 ```
+
+### Para Netlify (Configuração de Deploy):
+1. Vá em **Site Settings > Environment Variables**
+2. Adicione as seguintes variáveis:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=sua-url-do-supabase
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sua-anon-key
+SUPABASE_SERVICE_ROLE_KEY=sua-service-role-key
+```
+
+⚠️ **IMPORTANTE**: A `SUPABASE_SERVICE_ROLE_KEY` é necessária apenas para o webhook funcionar. O resto da aplicação usa apenas as chaves públicas.
 
 ## Testando Localmente
 

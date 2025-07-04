@@ -1,11 +1,21 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 
-// Cliente Supabase com Service Role para operações administrativas
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+// Função para criar cliente Supabase apenas quando necessário (lazy loading)
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl) {
+    throw new Error('NEXT_PUBLIC_SUPABASE_URL é obrigatória')
+  }
+
+  if (!supabaseServiceKey) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY é obrigatória')
+  }
+
+  return createClient(supabaseUrl, supabaseServiceKey)
+}
 
 interface WebhookPayload {
   table: string // Nome da tabela onde inserir os dados
@@ -16,7 +26,7 @@ interface WebhookPayload {
 
 export async function POST(request: NextRequest) {
   console.log('🎣 Webhook recebido')
-  
+
   try {
     // Parse do body
     const payload: WebhookPayload = await request.json()
@@ -45,6 +55,9 @@ export async function POST(request: NextRequest) {
     let result
     let error
 
+    // Criar cliente Supabase apenas quando necessário
+    const supabase = getSupabaseClient()
+
     switch (action) {
       case 'insert':
         console.log('➕ Inserindo dados:', payload.data)
@@ -52,7 +65,7 @@ export async function POST(request: NextRequest) {
           .from(payload.table)
           .insert([payload.data])
           .select()
-        
+
         result = insertResult.data
         error = insertResult.error
         break
@@ -72,7 +85,7 @@ export async function POST(request: NextRequest) {
           .update(payload.data)
           .match(payload.where)
           .select()
-        
+
         result = updateResult.data
         error = updateResult.error
         break
@@ -92,7 +105,7 @@ export async function POST(request: NextRequest) {
           .delete()
           .match(payload.where)
           .select()
-        
+
         result = deleteResult.data
         error = deleteResult.error
         break
