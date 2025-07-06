@@ -46,9 +46,24 @@ CREATE POLICY "Usuários podem inserir próprio perfil" ON public_profiles
 -- Função para criar perfil público automaticamente
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
+DECLARE
+  has_payment BOOLEAN := FALSE;
 BEGIN
+  -- Verificar se o usuário tem pagamento na tabela payments
+  SELECT EXISTS(
+    SELECT 1 FROM payments 
+    WHERE email = NEW.email 
+    AND status = 'aprovado'
+  ) INTO has_payment;
+  
+  -- Inserir perfil com assinatura ativa se tem pagamento
   INSERT INTO public.public_profiles (id, name, assinante)
-  VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data->>'name', NEW.email), FALSE);
+  VALUES (
+    NEW.id, 
+    COALESCE(NEW.raw_user_meta_data->>'name', NEW.email), 
+    has_payment
+  );
+  
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -184,3 +199,26 @@ Armazena os vídeos submetidos pelos usuários.
 - `videos.user_id` → `public_profiles.id` (muitos-para-um)
 - `comments.video_id` → `videos.id` (muitos-para-um)
 - `comments.parent_id` → `comments.id` (auto-referência para replies)
+
+# Tabela: payments
+
+> **Descrição**: Nenhuma descrição disponível.
+
+## Estrutura da Tabela
+
+| Nome da Coluna | Tipo de Dado              | Formato | Descrição                  |
+|----------------|---------------------------|---------|----------------------------|
+| `id`           | string                    | uuid    | Identificador único        |
+| `evento`       | string                    | text    | Evento associado           |
+| `produto`      | string                    | text    | Nome ou tipo do produto    |
+| `transacao`    | string                    | text    | Identificador da transação |
+| `email`        | string                    | text    | E-mail do usuário          |
+| `status`       | string                    | text    | Status do pagamento        |
+| `data_evento`  | string                    | timestamp with time zone | Data do evento           |
+| `raw_payload`  | json                      | jsonb   | Dados brutos do evento     |
+| `created_at`   | string                    | timestamp with time zone | Data de criação do registro |
+
+## Observações
+
+- A coluna `raw_payload` contém o payload completo do evento de pagamento no formato JSON.
+- `data_evento` e `created_at` armazenam data e hora com fuso horário (UTC recomendado).

@@ -2,15 +2,15 @@
 
 import type React from "react"
 
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Video, Sparkles } from "lucide-react"
-import { signUp, signIn } from "@/lib/auth"
+import { signIn, signUp } from "@/lib/auth"
 import type { User } from "@/types"
+import { Sparkles, Video } from "lucide-react"
+import { useState } from "react"
 
 interface AuthFormProps {
   onLogin: (user: User) => void
@@ -31,53 +31,54 @@ export function AuthForm({ onLogin }: AuthFormProps) {
     const email = formData.get("email") as string
     const password = formData.get("password") as string
     const name = formData.get("name") as string
+    const phone = formData.get("phone") as string
 
-          try {
-        if (isLogin) {
-          // Login com Supabase
-          const { user, error } = await signIn(email, password)
-          
-          if (error) {
-            setError(error)
-          } else if (user) {
+    try {
+      if (isLogin) {
+        // Login com Supabase
+        const { user, error } = await signIn(email, password)
+
+        if (error) {
+          setError(error)
+        } else if (user) {
+          // Converter diretamente para o formato da app
+          const formattedUser = {
+            id: user.id,
+            email: user.email,
+            name: (user.user_metadata?.name as string) || user.email?.split('@')[0] || 'Usuário',
+            assinante: Boolean(user.user_metadata?.assinante) || false,
+            createdAt: user.created_at,
+          }
+          onLogin(formattedUser)
+        }
+      } else {
+        // Cadastro com Supabase
+        const { user, error, needsConfirmation } = await signUp(email, password, name, phone)
+
+        if (error) {
+          setError(error)
+        } else if (user) {
+          if (needsConfirmation) {
+            setSuccess("Cadastro realizado com sucesso! Verifique seu email para confirmar a conta.")
+          } else {
             // Converter diretamente para o formato da app
             const formattedUser = {
               id: user.id,
               email: user.email,
-              name: (user.user_metadata?.name as string) || user.email?.split('@')[0] || 'Usuário',
-              assinante: Boolean(user.user_metadata?.assinante) || false,
+              name: name,
+              assinante: false,
               createdAt: user.created_at,
             }
             onLogin(formattedUser)
           }
-        } else {
-          // Cadastro com Supabase
-          const { user, error, needsConfirmation } = await signUp(email, password, name)
-          
-          if (error) {
-            setError(error)
-          } else if (user) {
-            if (needsConfirmation) {
-              setSuccess("Cadastro realizado com sucesso! Verifique seu email para confirmar a conta.")
-            } else {
-              // Converter diretamente para o formato da app
-              const formattedUser = {
-                id: user.id,
-                email: user.email,
-                name: name,
-                assinante: false,
-                createdAt: user.created_at,
-              }
-              onLogin(formattedUser)
-            }
-          }
         }
-      } catch (err: unknown) {
-        const errorMessage = err instanceof Error ? err.message : 'Erro inesperado'
-        setError(errorMessage)
-      } finally {
-        setIsLoading(false)
       }
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro inesperado'
+      setError(errorMessage)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -88,7 +89,7 @@ export function AuthForm({ onLogin }: AuthFormProps) {
             <Video className="h-8 w-8 text-purple-600" />
             <Sparkles className="h-6 w-6 text-indigo-500" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">AI Video Community</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Criadores de Vídeos</h1>
           <p className="text-gray-600 mt-2">Comunidade para criadores de vídeos com IA</p>
         </div>
 
@@ -137,6 +138,10 @@ export function AuthForm({ onLogin }: AuthFormProps) {
                   <div className="space-y-2">
                     <Label htmlFor="signup-name">Nome</Label>
                     <Input id="signup-name" name="name" placeholder="Seu nome" required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-phone">Telefone</Label>
+                    <Input id="signup-phone" name="phone" type="tel" placeholder="(11) 99999-9999" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-email">Email</Label>

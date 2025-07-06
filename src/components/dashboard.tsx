@@ -1,14 +1,14 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { AddVideoModal } from "@/components/add-video-modal"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { VideoPost } from "@/components/video-post"
-import { AddVideoModal } from "@/components/add-video-modal"
-import { Video, Plus, LogOut, Crown, Lock } from "lucide-react"
-import { getVideos, createVideo, getUserName } from "@/lib/database"
+import { createVideo, getUserName, getVideos } from "@/lib/database"
 import type { User, VideoData, VideoFormData } from "@/types"
+import { Crown, Lock, LogOut, Plus, Video } from "lucide-react"
+import { useCallback, useEffect, useState } from "react"
 
 interface DashboardProps {
   user: User
@@ -30,9 +30,9 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
     try {
       setLoading(true)
       console.log('📹 Carregando vídeos...')
-      
+
       const { data, error } = await getVideos()
-      
+
       if (error) {
         console.error('❌ Erro ao carregar vídeos:', error)
         setError(error)
@@ -41,13 +41,13 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
 
       if (data && data.length > 0) {
         console.log(`📊 ${data.length} vídeos encontrados, buscando nomes dos autores...`)
-        
+
         // Transformar os dados e buscar nomes dos usuários
         const enrichedVideos = await Promise.all(data.map(async (video): Promise<EnrichedVideoData> => {
           try {
             const userName = await getUserName(video.user_id, user)
             console.log(`👤 Vídeo ${video.id}: autor ${video.user_id} = ${userName}`)
-            
+
             return {
               id: video.id,
               userId: video.user_id,
@@ -70,7 +70,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
             }
           }
         }))
-        
+
         console.log('✅ Vídeos processados com sucesso')
         setVideos(enrichedVideos)
       } else {
@@ -94,16 +94,16 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
   useEffect(() => {
     if (videos.length > 0 && user) {
       // Atualizar nome nos vídeos do usuário atual se necessário
-      const needsUpdate = videos.some(video => 
-        video.userId === user.id && 
+      const needsUpdate = videos.some(video =>
+        video.userId === user.id &&
         video.userName !== user.name &&
         user.name !== user.email?.split('@')[0] // Só atualizar se o nome realmente mudou
       )
-      
+
       if (needsUpdate) {
         console.log('🔄 Atualizando nomes dos vídeos do usuário atual...')
-        setVideos(prev => prev.map(video => 
-          video.userId === user.id 
+        setVideos(prev => prev.map(video =>
+          video.userId === user.id
             ? { ...video, userName: user.name || user.email?.split('@')[0] || 'Você' }
             : video
         ))
@@ -114,7 +114,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
   const addVideo = async (videoData: VideoFormData) => {
     try {
       console.log('➕ Adicionando novo vídeo...')
-      
+
       const { data, error } = await createVideo({
         youtube_url: videoData.youtubeUrl,
         prompt: videoData.prompt,
@@ -128,7 +128,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
 
       if (data) {
         console.log('✅ Vídeo criado:', data.id)
-        
+
         // Adicionar o novo vídeo ao estado com nome do usuário atual
         const newVideo: EnrichedVideoData = {
           id: data.id,
@@ -139,7 +139,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
           createdAt: data.created_at,
           comments: [],
         }
-        
+
         setVideos(prev => [newVideo, ...prev])
         setShowAddModal(false)
       }
@@ -183,7 +183,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-3">
               <Video className="h-8 w-8 text-purple-600" />
-              <h1 className="text-xl font-bold text-gray-900">AI Video Community</h1>
+              <h1 className="text-xl font-bold text-gray-900">Criadores de Vídeos</h1>
             </div>
 
             <div className="flex items-center gap-4">

@@ -1,3 +1,4 @@
+import { activateSubscriptionByEmail } from '@/lib/database'
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -91,6 +92,20 @@ export async function POST(request: NextRequest) {
       }
 
       console.log('🎉 Dados inseridos com sucesso:', data)
+
+      // Segunda ação: Ativar assinatura do usuário se ele existir
+      const userEmail = String(payload.email || '')
+      if (userEmail) {
+        const activationResult = await activateSubscriptionByEmail(userEmail)
+
+        return NextResponse.json({
+          success: true,
+          message: 'Compra aprovada salva com sucesso',
+          data: data?.[0] || null,
+          subscriptionActivation: activationResult,
+          processedAt: new Date().toISOString()
+        })
+      }
 
       return NextResponse.json({
         success: true,
