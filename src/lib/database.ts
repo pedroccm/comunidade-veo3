@@ -571,7 +571,7 @@ export async function activateSubscriptionByEmail(email: string): Promise<{ succ
     }
 
     // Ativar assinatura
-    const { data: profile, error: updateError } = await updatePublicProfile(user.id, { assinante: true })
+    const { data: _, error: updateError } = await updatePublicProfile(user.id, { assinante: true })
 
     if (updateError) {
       return { success: false, message: `Erro ao ativar assinatura: ${updateError}` }
