@@ -1,7 +1,7 @@
-import { useEffect, useState, useRef } from 'react'
-import { supabase } from '@/lib/supabase'
 import { enrichUserProfile, invalidateUserNameCache } from '@/lib/database'
-import type { User, SupabaseUser } from '@/types'
+import { supabase } from '@/lib/supabase'
+import type { SupabaseUser, User } from '@/types'
+import { useEffect, useRef, useState } from 'react'
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
@@ -26,20 +26,20 @@ export function useAuth() {
   // Função para tentar enriquecer o perfil (opcional, não bloqueia)
   const tryEnrichProfile = async (basicUser: User) => {
     if (hasEnriched.current) return
-    
+
     try {
       hasEnriched.current = true
       console.log('🔄 Tentando enriquecer perfil...')
-      
+
       const enrichedUser = await enrichUserProfile(basicUser)
-      
+
       // Só atualiza se realmente mudou alguma coisa
       if (enrichedUser.assinante !== basicUser.assinante || enrichedUser.name !== basicUser.name) {
         console.log('✅ Perfil enriquecido com sucesso')
-        
+
         // Invalidar cache de nomes para garantir dados atualizados
         invalidateUserNameCache(basicUser.id)
-        
+
         setUser(enrichedUser)
         setIsEnriched(true)
       }
@@ -69,32 +69,32 @@ export function useAuth() {
         console.log('🔒 Verificação já em andamento ou concluída, pulando...')
         return
       }
-      
+
       isProcessing.current = true
       console.log('🔍 Iniciando verificação de usuário...')
-      
+
       try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-        
+
         if (!isMounted) return
-        
+
         if (sessionError) {
           console.error('❌ Erro ao obter sessão:', sessionError)
           finishLoading(null, 'Erro ao verificar autenticação')
           return
         }
-        
+
         if (session?.user) {
           console.log('✅ Usuário encontrado:', session.user.id)
           const formattedUser = convertUser(session.user as SupabaseUser)
           finishLoading(formattedUser)
-          
+
           // Cancelar timeout
           if (timeoutId) {
             clearTimeout(timeoutId)
             timeoutId = null
           }
-          
+
           // Tentar enriquecer perfil
           setTimeout(() => {
             if (isMounted) {
@@ -104,20 +104,20 @@ export function useAuth() {
         } else {
           console.log('❌ Nenhum usuário logado')
           finishLoading()
-          
+
           // Cancelar timeout
           if (timeoutId) {
             clearTimeout(timeoutId)
             timeoutId = null
           }
         }
-        
+
       } catch (error) {
         console.error('❌ Erro geral na verificação:', error)
         if (isMounted) {
           finishLoading(null, 'Erro inesperado na autenticação')
         }
-        
+
         // Cancelar timeout
         if (timeoutId) {
           clearTimeout(timeoutId)
@@ -132,10 +132,10 @@ export function useAuth() {
     if (!hasInitialized.current) {
       timeoutId = setTimeout(() => {
         if (isMounted && !hasInitialized.current) {
-          console.warn('⚠️ Timeout na verificação - forçando finalização')
-          finishLoading(null, 'Timeout na verificação de autenticação')
+          console.warn('⚠️ Timeout na verificação de 5s - forçando finalização')
+          finishLoading(null, null) // Sem erro, apenas finaliza
         }
-      }, 8000)
+      }, 5000)
     }
 
     checkUser()
@@ -145,36 +145,36 @@ export function useAuth() {
       if (!isMounted) return
 
       console.log('🔄 Auth state changed:', event, session?.user?.id || 'no-user')
-      
+
       // Cancelar timeout sempre que há mudança
       if (timeoutId) {
         clearTimeout(timeoutId)
         timeoutId = null
       }
-      
+
       // Apenas resetar se for mudança real de estado
-      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
         setError(null) // Limpar erros anteriores
-        
-        if (event === 'SIGNED_IN' && session?.user) {
+
+        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
           console.log('✅ Login/refresh detectado:', session.user.id)
           const formattedUser = convertUser(session.user as SupabaseUser)
           setUser(formattedUser)
           setLoading(false)
           hasInitialized.current = true
-          
+
           // Reset flags para permitir novo enriquecimento
           hasEnriched.current = false
           setIsEnriched(false)
-          
+
           // Tentar enriquecer perfil
           setTimeout(() => {
             if (isMounted) {
               tryEnrichProfile(formattedUser)
             }
           }, 1000)
-        } else if (event === 'SIGNED_OUT') {
-          console.log('❌ Logout detectado')
+        } else if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !session?.user)) {
+          console.log(event === 'SIGNED_OUT' ? '❌ Logout detectado' : '❌ Sessão inicial sem usuário')
           setUser(null)
           setLoading(false)
           hasInitialized.current = true

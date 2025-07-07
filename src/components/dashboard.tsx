@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { VideoPost } from "@/components/video-post"
+import { YouTubeErrorSuppressor } from "@/components/youtube-error-suppressor"
 import { createVideo, getUserName, getVideos } from "@/lib/database"
 import type { User, VideoData, VideoFormData } from "@/types"
 import { Crown, Lock, LogOut, Plus, Video } from "lucide-react"
@@ -113,6 +114,12 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
 
   const addVideo = async (videoData: VideoFormData) => {
     try {
+      // Verificar se usuário é assinante
+      if (!user.assinante) {
+        alert('Apenas assinantes podem adicionar vídeos. Assine para ter acesso completo!')
+        return
+      }
+
       console.log('➕ Adicionando novo vídeo...')
 
       const { data, error } = await createVideo({
@@ -177,6 +184,8 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <YouTubeErrorSuppressor />
+
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -202,10 +211,12 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
                 )}
               </div>
 
-              <Button variant="outline" size="sm" onClick={() => setShowAddModal(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Adicionar Vídeo
-              </Button>
+              {user.assinante && (
+                <Button variant="outline" size="sm" onClick={() => setShowAddModal(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Adicionar Vídeo
+                </Button>
+              )}
 
               <Button variant="ghost" size="sm" onClick={onLogout}>
                 <LogOut className="h-4 w-4" />
@@ -218,15 +229,24 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {!user.assinante && (
-          <Card className="mb-6 border-amber-200 bg-amber-50">
+          <Card className="mb-6 border-purple-200 bg-purple-50">
             <CardHeader>
-              <CardTitle className="text-amber-800 flex items-center gap-2">
+              <CardTitle className="text-purple-800 flex items-center gap-2">
                 <Lock className="h-5 w-5" />
-                Acesso Limitado
+                🚀 Desbloqueie Acesso Total
               </CardTitle>
-              <CardDescription className="text-amber-700">
-                Você está visualizando apenas 3 vídeos de exemplo. Para acessar toda a comunidade, entre em contato para
-                se tornar assinante.
+              <CardDescription className="text-purple-700 space-y-3">
+                <p>Você está visualizando apenas 3 vídeos de exemplo. Tenha acesso a mais de 50+ vídeos com IA e atualizações diárias por apenas R$ 39,90/mês!</p>
+                <div className="pt-2">
+                  <a
+                    href="https://pay.hotmart.com/M100644599Q?bid=1751886666553"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center px-4 py-2 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    🎯 Assinar Agora - R$ 39,90/mês
+                  </a>
+                </div>
               </CardDescription>
             </CardHeader>
           </Card>
@@ -236,12 +256,21 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Video className="h-12 w-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum vídeo ainda</h3>
-              <p className="text-gray-500 text-center mb-4">Seja o primeiro a compartilhar um vídeo criado com IA!</p>
-              <Button onClick={() => setShowAddModal(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Adicionar Primeiro Vídeo
-              </Button>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {user.assinante ? "Nenhum vídeo ainda" : "Vídeos exclusivos para assinantes"}
+              </h3>
+              <p className="text-gray-500 text-center mb-4">
+                {user.assinante
+                  ? "Seja o primeiro a compartilhar um vídeo criado com IA!"
+                  : "Assine para ver e adicionar vídeos incríveis criados com IA!"
+                }
+              </p>
+              {user.assinante && (
+                <Button onClick={() => setShowAddModal(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Adicionar Primeiro Vídeo
+                </Button>
+              )}
             </CardContent>
           </Card>
         ) : (

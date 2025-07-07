@@ -1,12 +1,12 @@
 "use client"
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
-import { MessageCircle, Send, Reply, Calendar, Loader2 } from "lucide-react"
-import { getCommentsByVideoId, createComment, getUserName } from "@/lib/database"
-import type { VideoData, CommentData, User } from "@/types"
+import { createComment, getCommentsByVideoId, getUserName } from "@/lib/database"
+import type { CommentData, User, VideoData } from "@/types"
+import { Calendar, Loader2, MessageCircle, Reply, Send } from "lucide-react"
+import { useEffect, useState } from "react"
 
 interface VideoPostProps {
   video: VideoData
@@ -19,13 +19,34 @@ export function VideoPost({ video, currentUser }: VideoPostProps) {
   const [replyTo, setReplyTo] = useState<string | null>(null)
   const [replyText, setReplyText] = useState("")
   const [comments, setComments] = useState<CommentData[]>([])
-  const [commentsLoading, setCommentsLoading] = useState(false)
+  const [commentsLoading, setCommentsLoading] = useState(true) // Inicia como true para carregar automaticamente
   const [commentsLoaded, setCommentsLoaded] = useState(false)
   const [addingComment, setAddingComment] = useState(false)
 
+  // Carregar comentários automaticamente quando o componente monta
+  useEffect(() => {
+    loadComments()
+  }, [video.id]) // Recarregar se o vídeo mudar
+
   const getYouTubeEmbedUrl = (url: string) => {
     const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)
-    return videoId ? `https://www.youtube.com/embed/${videoId[1]}` : ""
+    if (!videoId) return ""
+
+    // Parâmetros para reduzir tracking e analytics do YouTube
+    const params = new URLSearchParams({
+      rel: '0',           // Não mostrar vídeos relacionados
+      modestbranding: '1', // Remover logo do YouTube
+      enablejsapi: '0',   // Desabilitar JavaScript API
+      fs: '1',            // Permitir fullscreen
+      iv_load_policy: '3', // Desabilitar anotações
+      disablekb: '0',     // Manter controles de teclado
+      controls: '1',      // Mostrar controles
+      showinfo: '0',      // Não mostrar info do vídeo
+      origin: typeof window !== 'undefined' ? window.location.origin : 'localhost'
+    })
+
+    // Usar domínio privacy-enhanced para reduzir tracking
+    return `https://www.youtube-nocookie.com/embed/${videoId[1]}?${params.toString()}`
   }
 
   const loadComments = async () => {
@@ -35,7 +56,7 @@ export function VideoPost({ video, currentUser }: VideoPostProps) {
     try {
       console.log('📝 Carregando comentários do vídeo:', video.id)
       const { data, error } = await getCommentsByVideoId(video.id)
-      
+
       if (error) {
         console.error('❌ Erro ao carregar comentários:', error)
         return
@@ -43,13 +64,13 @@ export function VideoPost({ video, currentUser }: VideoPostProps) {
 
       if (data) {
         console.log(`📊 ${data.length} comentários encontrados, buscando nomes dos autores...`)
-        
+
         // Primeiro, buscar todos os nomes dos usuários
         const userNames = new Map<string, string>()
-        
+
         // Buscar nomes únicos para evitar consultas duplicadas
         const uniqueUserIds = [...new Set(data.map(comment => comment.user_id))]
-        
+
         await Promise.all(
           uniqueUserIds.map(async (userId) => {
             try {
@@ -192,9 +213,6 @@ export function VideoPost({ video, currentUser }: VideoPostProps) {
 
   const handleShowComments = () => {
     setShowComments(!showComments)
-    if (!showComments && !commentsLoaded) {
-      loadComments()
-    }
   }
 
   const formatDate = (dateString: string) => {
@@ -227,7 +245,15 @@ export function VideoPost({ video, currentUser }: VideoPostProps) {
         {/* YouTube Video */}
         {embedUrl && (
           <div className="aspect-video rounded-lg overflow-hidden">
-            <iframe src={embedUrl} title="YouTube video" className="w-full h-full" allowFullScreen />
+            <iframe
+              src={embedUrl}
+              title="YouTube video"
+              className="w-full h-full"
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              sandbox="allow-scripts allow-same-origin allow-presentation allow-fullscreen"
+            />
           </div>
         )}
 
@@ -241,7 +267,14 @@ export function VideoPost({ video, currentUser }: VideoPostProps) {
         <div className="border-t pt-4">
           <Button variant="ghost" size="sm" onClick={handleShowComments} className="mb-4">
             <MessageCircle className="h-4 w-4 mr-2" />
-            {commentsLoaded ? comments.length : '...'} comentários
+            {commentsLoading ? (
+              <>
+                <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                Carregando...
+              </>
+            ) : (
+              `${comments.length} comentários`
+            )}
           </Button>
 
           {showComments && (

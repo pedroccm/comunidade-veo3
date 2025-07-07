@@ -7,9 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { signIn, signUp } from "@/lib/auth"
+import { resetPassword, signIn, signUp } from "@/lib/auth"
 import type { User } from "@/types"
-import { Sparkles, Video } from "lucide-react"
+import { ArrowLeft, Mail, Sparkles, Video } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 interface AuthFormProps {
@@ -20,6 +21,9 @@ export function AuthForm({ onLogin }: AuthFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [showResetForm, setShowResetForm] = useState(false)
+  const [resetEmail, setResetEmail] = useState("")
+  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>, isLogin: boolean) => {
     e.preventDefault()
@@ -50,6 +54,8 @@ export function AuthForm({ onLogin }: AuthFormProps) {
             createdAt: user.created_at,
           }
           onLogin(formattedUser)
+          // Redirecionar para o dashboard
+          router.push('/dashboard')
         }
       } else {
         // Cadastro com Supabase
@@ -70,6 +76,8 @@ export function AuthForm({ onLogin }: AuthFormProps) {
               createdAt: user.created_at,
             }
             onLogin(formattedUser)
+            // Redirecionar para o dashboard
+            router.push('/dashboard')
           }
         }
       }
@@ -79,6 +87,41 @@ export function AuthForm({ onLogin }: AuthFormProps) {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleResetPassword = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError(null)
+    setSuccess(null)
+
+    try {
+      const { error, success } = await resetPassword(resetEmail)
+
+      if (error) {
+        setError(error)
+      } else if (success) {
+        setSuccess("Email de recuperação enviado! Verifique sua caixa de entrada e siga as instruções para redefinir sua senha.")
+        setResetEmail("")
+        // Voltar para tela de login após 3 segundos
+        setTimeout(() => {
+          setShowResetForm(false)
+          setSuccess(null)
+        }, 3000)
+      }
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro inesperado'
+      setError(errorMessage)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const goBackToLogin = () => {
+    setShowResetForm(false)
+    setError(null)
+    setSuccess(null)
+    setResetEmail("")
   }
 
   return (
@@ -95,74 +138,127 @@ export function AuthForm({ onLogin }: AuthFormProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Bem-vindo</CardTitle>
-            <CardDescription>Entre na sua conta ou crie uma nova para acessar a comunidade</CardDescription>
+            <CardTitle>
+              {showResetForm ? "Recuperar Senha" : "Bem-vindo"}
+            </CardTitle>
+            <CardDescription>
+              {showResetForm
+                ? "Digite seu email para receber instruções de recuperação"
+                : "Entre na sua conta ou crie uma nova para acessar a comunidade"
+              }
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Entrar</TabsTrigger>
-                <TabsTrigger value="signup">Cadastrar</TabsTrigger>
-              </TabsList>
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
+            )}
 
-              {error && (
-                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
-                  <p className="text-sm text-red-600">{error}</p>
-                </div>
-              )}
+            {success && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
+                <p className="text-sm text-green-600">{success}</p>
+              </div>
+            )}
 
-              {success && (
-                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
-                  <p className="text-sm text-green-600">{success}</p>
-                </div>
-              )}
-
-              <TabsContent value="login">
-                <form onSubmit={(e) => handleSubmit(e, true)} className="space-y-4">
+            {showResetForm ? (
+              <div className="space-y-4">
+                <form onSubmit={handleResetPassword} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="login-email">Email</Label>
-                    <Input id="login-email" name="email" type="email" placeholder="seu@email.com" required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="login-password">Senha</Label>
-                    <Input id="login-password" name="password" type="password" placeholder="••••••••" required />
+                    <Label htmlFor="reset-email">Email</Label>
+                    <Input
+                      id="reset-email"
+                      type="email"
+                      placeholder="seu@email.com"
+                      value={resetEmail}
+                      onChange={(e) => setResetEmail(e.target.value)}
+                      required
+                    />
                   </div>
                   <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Entrando..." : "Entrar"}
+                    {isLoading ? (
+                      "Enviando..."
+                    ) : (
+                      <>
+                        <Mail className="h-4 w-4 mr-2" />
+                        Enviar Link de Recuperação
+                      </>
+                    )}
                   </Button>
                 </form>
-              </TabsContent>
 
-              <TabsContent value="signup">
-                <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-name">Nome</Label>
-                    <Input id="signup-name" name="name" placeholder="Seu nome" required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-phone">Telefone</Label>
-                    <Input id="signup-phone" name="phone" type="tel" placeholder="(11) 99999-9999" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <Input id="signup-email" name="email" type="email" placeholder="seu@email.com" required />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Senha</Label>
-                    <Input id="signup-password" name="password" type="password" placeholder="••••••••" required />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Cadastrando..." : "Cadastrar"}
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
+                <Button
+                  variant="ghost"
+                  onClick={goBackToLogin}
+                  className="w-full"
+                  disabled={isLoading}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Voltar ao Login
+                </Button>
+              </div>
+            ) : (
+              <Tabs defaultValue="login" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="login">Entrar</TabsTrigger>
+                  <TabsTrigger value="signup">Cadastrar</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="login">
+                  <form onSubmit={(e) => handleSubmit(e, true)} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="login-email">Email</Label>
+                      <Input id="login-email" name="email" type="email" placeholder="seu@email.com" required />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="login-password">Senha</Label>
+                      <Input id="login-password" name="password" type="password" placeholder="••••••••" required />
+                    </div>
+
+                    <div className="flex justify-end">
+                      <Button
+                        type="button"
+                        variant="link"
+                        className="text-sm h-auto p-0"
+                        onClick={() => setShowResetForm(true)}
+                      >
+                        Esqueci minha senha
+                      </Button>
+                    </div>
+
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? "Entrando..." : "Entrar"}
+                    </Button>
+                  </form>
+                </TabsContent>
+
+                <TabsContent value="signup">
+                  <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-name">Nome</Label>
+                      <Input id="signup-name" name="name" placeholder="Seu nome" required />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-phone">Telefone</Label>
+                      <Input id="signup-phone" name="phone" type="tel" placeholder="(11) 99999-9999" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-email">Email</Label>
+                      <Input id="signup-email" name="email" type="email" placeholder="seu@email.com" required />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-password">Senha</Label>
+                      <Input id="signup-password" name="password" type="password" placeholder="••••••••" required />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? "Cadastrando..." : "Cadastrar"}
+                    </Button>
+                  </form>
+                </TabsContent>
+              </Tabs>
+            )}
           </CardContent>
         </Card>
-
-        <div className="mt-6 text-center text-sm text-gray-500">
-          <p>Dados seguros com Supabase</p>
-        </div>
       </div>
     </div>
   )
