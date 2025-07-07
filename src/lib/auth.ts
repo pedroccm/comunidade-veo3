@@ -15,7 +15,6 @@ export function translateAuthError(error: string): string {
     'Token has expired': 'Sessão expirada. Faça login novamente.',
     'User not found': 'Usuário não encontrado',
     'Signup is disabled': 'Cadastro desabilitado no momento',
-    'Email address not authorized': 'Email não autorizado',
     'Database error saving user': 'Erro no banco de dados. Tente novamente.',
     'Invalid user': 'Usuário inválido',
     'Unable to validate email address: invalid format': 'Formato de email inválido',
