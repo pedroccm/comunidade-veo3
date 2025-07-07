@@ -1,21 +1,23 @@
 "use client"
 
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Brain, CheckCircle, Clock, Lightbulb, MessageCircle, Play, Sparkles, Star, Users, Video } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 export default function LandingPage() {
+  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
   const handleNavigateToLogin = () => {
+    setIsLoading(true)
     router.push('/login')
   }
 
   return (
     <div className="min-h-screen bg-white">
-      {/* 🔝 Bloco 1: Hero / Cabeçalho */}
+      {/* 🎯 Bloco 1: Hero Section */}
       <section className="bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50 py-20 px-4">
         <div className="max-w-6xl mx-auto text-center">
           <div className="flex items-center justify-center gap-3 mb-8">
@@ -24,12 +26,12 @@ export default function LandingPage() {
           </div>
 
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-            Descubra o Futuro dos Vídeos<br />
+            Descubra o Futuro dos Vídeos <br />
             <span className="text-purple-600">com Inteligência Artificial</span>
           </h1>
 
           <h2 className="text-xl md:text-2xl text-gray-600 mb-8 max-w-4xl mx-auto leading-relaxed">
-            Aprenda diariamente com vídeos criados por IA, veja os prompts usados e participe da comunidade que está revolucionando a criação de conteúdo. Tudo por apenas <span className="font-bold text-purple-600">R$ 39,90/mês</span>.
+            Faça parte da comunidade que está criando vídeos incríveis com IA. Aprenda prompts que funcionam, veja exemplos reais e acelere seu conteúdo. Tudo por apenas <span className="font-bold text-purple-600">R$ 39,90/mês</span>.
           </h2>
 
           <div className="space-y-4">
@@ -37,56 +39,58 @@ export default function LandingPage() {
               size="lg"
               className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
               onClick={handleNavigateToLogin}
+              disabled={isLoading}
             >
-              Quero fazer parte da comunidade
+              {isLoading ? "Carregando..." : "Quero Ver os Vídeos Agora"}
             </Button>
+
             <p className="text-sm text-gray-500">
-              Acesso imediato aos mais de 50 vídeos IA e às atualizações diárias
+              ✨ Acesso imediato • Novos vídeos todos os dias • Cancele quando quiser
             </p>
           </div>
         </div>
       </section>
 
-      {/* 🎯 Bloco 2: Problema + Oportunidade */}
+      {/* 💔 Bloco 2: Problema + Oportunidade */}
       <section className="py-20 px-4 bg-white">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8">
-            Criar vídeos incríveis nunca foi tão fácil<br />
+            Por que as IA para vídeo são tão complicadas <br />
             <span className="text-gray-600">(ou tão difícil de acompanhar)</span>
           </h2>
 
           <div className="text-lg text-gray-700 leading-relaxed space-y-6 max-w-3xl mx-auto">
             <p>
-              Todos os dias, milhares de criadores descobrem formas novas de usar IA para fazer vídeos virais, educativos, emocionantes. Mas…
+              Toda semana aparece uma IA nova para vídeo. Runaway, Kling, Luma, Minimax... Cada uma com seus truques, limitações e segredos.
             </p>
 
             <div className="space-y-4 text-left">
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 bg-red-500 rounded-full mt-3"></div>
-                <p>Como saber quais prompts funcionam?</p>
+                <p>Você perde tempo testando sem direção</p>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 bg-red-500 rounded-full mt-3"></div>
-                <p>Como acompanhar as tendências que mudam todo dia?</p>
+                <p>Não sabe quais prompts realmente funcionam</p>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 bg-red-500 rounded-full mt-3"></div>
-                <p>Como aprender rápido, sem depender de tutoriais longos ou fóruns confusos?</p>
+                <p>Seus vídeos saem genéricos demais ou com defeitos</p>
               </div>
             </div>
 
             <p className="text-xl font-semibold text-purple-600 pt-6">
-              É por isso que a <strong>Criadores de Vídeos</strong> existe.
+              🚀 E se você pudesse ver exatamente como outros criadores fazem vídeos que impressionam? Com o prompt exato, o resultado real e dicas práticas?
             </p>
           </div>
         </div>
       </section>
 
-      {/* 🚀 Bloco 3: O que é a comunidade */}
+      {/* 🎁 Bloco 3: Benefícios */}
       <section className="py-20 px-4 bg-gray-50">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-12">
-            A Comunidade para Criadores do Futuro
+            O que você encontra na nossa comunidade
           </h2>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -94,6 +98,7 @@ export default function LandingPage() {
               <CardContent className="space-y-3">
                 <Video className="h-8 w-8 text-purple-600" />
                 <h3 className="font-semibold">Mais de 50 vídeos criados com IA disponíveis imediatamente</h3>
+                <p className="text-gray-600">Desde animações simples até vídeos cinematográficos</p>
               </CardContent>
             </Card>
 
@@ -101,6 +106,7 @@ export default function LandingPage() {
               <CardContent className="space-y-3">
                 <MessageCircle className="h-8 w-8 text-indigo-600" />
                 <h3 className="font-semibold">Cada vídeo com o prompt exato usado para gerar</h3>
+                <p className="text-gray-600">Copie, adapte e melhore o que já funciona</p>
               </CardContent>
             </Card>
 
@@ -108,64 +114,62 @@ export default function LandingPage() {
               <CardContent className="space-y-3">
                 <Clock className="h-8 w-8 text-blue-600" />
                 <h3 className="font-semibold">Novos vídeos todos os dias (10+ atualizações diárias)</h3>
+                <p className="text-gray-600">Sempre com as tendências e IAs mais recentes</p>
               </CardContent>
             </Card>
 
             <Card className="p-6 hover:shadow-lg transition-shadow">
               <CardContent className="space-y-3">
                 <Users className="h-8 w-8 text-green-600" />
-                <h3 className="font-semibold">Área de comentários para trocar ideias e dicas</h3>
-              </CardContent>
-            </Card>
-
-            <Card className="p-6 hover:shadow-lg transition-shadow">
-              <CardContent className="space-y-3">
-                <Brain className="h-8 w-8 text-red-600" />
-                <h3 className="font-semibold">Aprenda a escrever melhores prompts</h3>
+                <h3 className="font-semibold">Comunidade ativa de criadores</h3>
+                <p className="text-gray-600">Troque experiências, tire dúvidas e colabore</p>
               </CardContent>
             </Card>
 
             <Card className="p-6 hover:shadow-lg transition-shadow">
               <CardContent className="space-y-3">
                 <Lightbulb className="h-8 w-8 text-yellow-600" />
-                <h3 className="font-semibold">Descubra novas ferramentas, modelos e hacks</h3>
+                <h3 className="font-semibold">Prompts testados e aprovados</h3>
+                <p className="text-gray-600">Sem perder tempo com tentativa e erro</p>
               </CardContent>
             </Card>
-          </div>
 
-          <div className="text-center mt-8">
-            <Badge variant="secondary" className="text-lg px-4 py-2">
-              🔓 Acesso 100% online, a qualquer hora
-            </Badge>
+            <Card className="p-6 hover:shadow-lg transition-shadow">
+              <CardContent className="space-y-3">
+                <Brain className="h-8 w-8 text-purple-600" />
+                <h3 className="font-semibold">Dicas e truques exclusivos</h3>
+                <p className="text-gray-600">Aprenda técnicas que não estão em lugar nenhum</p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
 
-      {/* 🧪 Bloco 4: Como funciona na prática */}
+      {/* 🔥 Bloco 4: Como funciona */}
       <section className="py-20 px-4 bg-white">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-12">
-            Veja como funciona por dentro:
+            Como funciona (é mais simples do que parece)
           </h2>
 
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="space-y-6">
-              <div className="space-y-4">
+          <div className="space-y-8">
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="space-y-6">
                 <div className="flex items-start gap-4">
                   <div className="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold">1</div>
-                  <p className="text-lg">Você entra com seu login</p>
+                  <p className="text-lg">Você entra na comunidade e vê dezenas de vídeos já criados</p>
                 </div>
                 <div className="flex items-start gap-4">
                   <div className="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold">2</div>
-                  <p className="text-lg">Tem acesso imediato à galeria com todos os vídeos</p>
+                  <p className="text-lg">Clica em qualquer vídeo e vê o prompt exato usado para criar aquilo</p>
                 </div>
                 <div className="flex items-start gap-4">
                   <div className="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold">3</div>
-                  <p className="text-lg">Clica em qualquer vídeo para ver o resultado e o prompt usado</p>
+                  <p className="text-lg">Copia, adapta ou se inspira para seus próprios projetos</p>
                 </div>
                 <div className="flex items-start gap-4">
                   <div className="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold">4</div>
-                  <p className="text-lg">Comenta, testa, adapta, aprende</p>
+                  <p className="text-lg">Comenta, pergunta e aprende com outros criadores</p>
                 </div>
                 <div className="flex items-start gap-4">
                   <div className="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold">5</div>
@@ -214,7 +218,7 @@ export default function LandingPage() {
                 </div>
                 <CardContent className="p-4">
                   <p className="text-sm text-gray-600 mb-2">
-                    <strong>Prompt usado:</strong> "Crie um vídeo de 30 segundos mostrando..."
+                    <strong>Prompt usado:</strong> &quot;Crie um vídeo de 30 segundos mostrando...&quot;
                   </p>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -303,7 +307,7 @@ export default function LandingPage() {
                   ))}
                 </div>
                 <blockquote className="text-lg text-gray-700 mb-4">
-                  "Eu economizo horas por dia vendo como os outros fazem. Vale muito mais do que 39 reais."
+                  &quot;Eu economizo horas por dia vendo como os outros fazem. Vale muito mais do que 39 reais.&quot;
                 </blockquote>
                 <cite className="text-gray-600 font-medium">– João, criador digital</cite>
               </CardContent>
@@ -317,7 +321,7 @@ export default function LandingPage() {
                   ))}
                 </div>
                 <blockquote className="text-lg text-gray-700 mb-4">
-                  "Estou aprendendo a fazer vídeos para meu negócio com IA só com o que vejo aqui."
+                  &quot;Estou aprendendo a fazer vídeos para meu negócio com IA só com o que vejo aqui.&quot;
                 </blockquote>
                 <cite className="text-gray-600 font-medium">– Luana, empreendedora</cite>
               </CardContent>

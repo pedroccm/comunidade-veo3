@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { createComment, getCommentsByVideoId, getUserName } from "@/lib/database"
 import type { CommentData, User, VideoData } from "@/types"
 import { Calendar, Loader2, MessageCircle, Reply, Send } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 interface VideoPostProps {
   video: VideoData
@@ -22,11 +22,6 @@ export function VideoPost({ video, currentUser }: VideoPostProps) {
   const [commentsLoading, setCommentsLoading] = useState(true) // Inicia como true para carregar automaticamente
   const [commentsLoaded, setCommentsLoaded] = useState(false)
   const [addingComment, setAddingComment] = useState(false)
-
-  // Carregar comentários automaticamente quando o componente monta
-  useEffect(() => {
-    loadComments()
-  }, [video.id]) // Recarregar se o vídeo mudar
 
   const getYouTubeEmbedUrl = (url: string) => {
     const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)
@@ -49,7 +44,7 @@ export function VideoPost({ video, currentUser }: VideoPostProps) {
     return `https://www.youtube-nocookie.com/embed/${videoId[1]}?${params.toString()}`
   }
 
-  const loadComments = async () => {
+  const loadComments = useCallback(async () => {
     if (commentsLoaded) return
 
     setCommentsLoading(true)
@@ -127,7 +122,12 @@ export function VideoPost({ video, currentUser }: VideoPostProps) {
     } finally {
       setCommentsLoading(false)
     }
-  }
+  }, [video.id, currentUser, commentsLoaded])
+
+  // Carregar comentários automaticamente quando o componente monta
+  useEffect(() => {
+    loadComments()
+  }, [loadComments])
 
   const addComment = async () => {
     if (!newComment.trim()) return
@@ -347,18 +347,27 @@ export function VideoPost({ video, currentUser }: VideoPostProps) {
                         {replyTo === comment.id && (
                           <div className="ml-6 flex gap-2">
                             <Textarea
-                              placeholder="Escreva uma resposta..."
+                              placeholder="Escreva sua resposta..."
                               value={replyText}
                               onChange={(e) => setReplyText(e.target.value)}
                               className="flex-1"
                               rows={2}
                               disabled={addingComment}
                             />
-                            <div className="flex flex-col gap-1">
-                              <Button onClick={() => addReply(comment.id)} size="sm" disabled={addingComment}>
+                            <div className="flex flex-col gap-2">
+                              <Button
+                                onClick={() => addReply(comment.id)}
+                                size="sm"
+                                disabled={addingComment}
+                              >
                                 {addingComment ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                               </Button>
-                              <Button variant="ghost" size="sm" onClick={() => setReplyTo(null)} disabled={addingComment}>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setReplyTo(null)}
+                                disabled={addingComment}
+                              >
                                 Cancelar
                               </Button>
                             </div>
