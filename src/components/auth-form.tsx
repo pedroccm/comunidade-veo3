@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { resetPassword, signIn, signUp } from "@/lib/auth"
 import type { User } from "@/types"
-import { ArrowLeft, Mail, Sparkles, Video } from "lucide-react"
+import { ArrowLeft, Eye, EyeOff, Mail, Sparkles, Video } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -23,6 +23,8 @@ export function AuthForm({ onLogin }: AuthFormProps) {
   const [success, setSuccess] = useState<string | null>(null)
   const [showResetForm, setShowResetForm] = useState(false)
   const [resetEmail, setResetEmail] = useState("")
+  const [showLoginPassword, setShowLoginPassword] = useState(false)
+  const [showSignupPassword, setShowSignupPassword] = useState(false)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>, isLogin: boolean) => {
@@ -212,7 +214,27 @@ export function AuthForm({ onLogin }: AuthFormProps) {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="login-password">Senha</Label>
-                      <Input id="login-password" name="password" type="password" placeholder="••••••••" required />
+                      <div className="relative">
+                        <Input
+                          id="login-password"
+                          name="password"
+                          type={showLoginPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          className="pr-10"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowLoginPassword(!showLoginPassword)}
+                          className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                        >
+                          {showLoginPassword ? (
+                            <EyeOff className="h-5 w-5" />
+                          ) : (
+                            <Eye className="h-5 w-5" />
+                          )}
+                        </button>
+                      </div>
                     </div>
 
                     <div className="flex justify-end">
@@ -248,7 +270,27 @@ export function AuthForm({ onLogin }: AuthFormProps) {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="signup-password">Senha</Label>
-                      <Input id="signup-password" name="password" type="password" placeholder="••••••••" required />
+                      <div className="relative">
+                        <Input
+                          id="signup-password"
+                          name="password"
+                          type={showSignupPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          className="pr-10"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowSignupPassword(!showSignupPassword)}
+                          className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                        >
+                          {showSignupPassword ? (
+                            <EyeOff className="h-5 w-5" />
+                          ) : (
+                            <Eye className="h-5 w-5" />
+                          )}
+                        </button>
+                      </div>
                     </div>
                     <Button type="submit" className="w-full" disabled={isLoading}>
                       {isLoading ? "Cadastrando..." : "Cadastrar"}

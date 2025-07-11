@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Brain, CheckCircle, Clock, Lightbulb, MessageCircle, Play, Sparkles, Star, Users, Video } from "lucide-react"
+import { Brain, CheckCircle, Clock, Lightbulb, MessageCircle, Sparkles, Star, Users, Video } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
@@ -207,46 +207,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 👁️‍🗨️ Bloco 6: Exemplo visual */}
-      <section className="py-20 px-4 bg-gray-50">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Card key={i} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="aspect-video bg-gradient-to-br from-purple-200 to-indigo-200 flex items-center justify-center">
-                  <Play className="h-12 w-12 text-purple-600" />
-                </div>
-                <CardContent className="p-4">
-                  <p className="text-sm text-gray-600 mb-2">
-                    <strong>Prompt usado:</strong> &quot;Crie um vídeo de 30 segundos mostrando...&quot;
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <MessageCircle className="h-4 w-4 text-gray-400" />
-                      <span className="text-sm text-gray-500">24 comentários</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                      <span className="text-sm text-gray-500">4.8</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          <div className="text-center mt-8">
-            <Button
-              variant="outline"
-              size="lg"
-              className="border-purple-600 text-purple-600 hover:bg-purple-50"
-              onClick={handleNavigateToLogin}
-            >
-              Ver mais exemplos
-            </Button>
-          </div>
-        </div>
-      </section>
 
       {/* 🔒 Bloco 7: Preço e Garantia */}
       <section className="py-20 px-4 bg-white">

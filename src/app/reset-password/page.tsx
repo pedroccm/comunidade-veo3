@@ -17,6 +17,7 @@ function ResetPasswordContent() {
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [validToken, setValidToken] = useState(false)
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -140,36 +141,49 @@ function ResetPasswordContent() {
                                             placeholder="Digite sua nova senha"
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
+                                            className="pr-10"
                                             required
                                             minLength={6}
                                         />
-                                        <Button
+                                        <button
                                             type="button"
-                                            variant="ghost"
-                                            size="sm"
-                                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                                             onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
                                         >
                                             {showPassword ? (
-                                                <EyeOff className="h-4 w-4" />
+                                                <EyeOff className="h-5 w-5" />
                                             ) : (
-                                                <Eye className="h-4 w-4" />
+                                                <Eye className="h-5 w-5" />
                                             )}
-                                        </Button>
+                                        </button>
                                     </div>
                                 </div>
 
                                 <div className="space-y-2">
                                     <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
-                                    <Input
-                                        id="confirmPassword"
-                                        type={showPassword ? "text" : "password"}
-                                        placeholder="Confirme sua nova senha"
-                                        value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                        required
-                                        minLength={6}
-                                    />
+                                    <div className="relative">
+                                        <Input
+                                            id="confirmPassword"
+                                            type={showConfirmPassword ? "text" : "password"}
+                                            placeholder="Confirme sua nova senha"
+                                            value={confirmPassword}
+                                            onChange={(e) => setConfirmPassword(e.target.value)}
+                                            className="pr-10"
+                                            required
+                                            minLength={6}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                                        >
+                                            {showConfirmPassword ? (
+                                                <EyeOff className="h-5 w-5" />
+                                            ) : (
+                                                <Eye className="h-5 w-5" />
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <Button type="submit" className="w-full" disabled={isLoading}>
