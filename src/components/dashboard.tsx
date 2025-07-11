@@ -128,7 +128,7 @@ function VideoSidePanel({
             try {
               const userName = await getUserName(userId, currentUser)
               userNames.set(userId, userName)
-            } catch (error) {
+            } catch {
               userNames.set(userId, `Usuário ${userId.slice(-4)}`)
             }
           })
@@ -171,7 +171,7 @@ function VideoSidePanel({
     } finally {
       setCommentsLoading(false)
     }
-  }, [video?.id, currentUser])
+  }, [video, currentUser])
 
   useEffect(() => {
     if (video && isOpen) {
